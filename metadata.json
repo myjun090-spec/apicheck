@@ -1,0 +1,5 @@
+{
+  "name": "Copy of API Key Validator",
+  "description": "A secure, client-side tool for developers to instantly validate API keys for Google Gemini, OpenAI, and Anthropic Claude.",
+  "requestFramePermissions": []
+}
