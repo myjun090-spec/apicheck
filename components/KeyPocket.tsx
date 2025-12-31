@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { HistoryItem, Provider } from '../types';
+import { getDecryptedKey } from '../utils/storage';
 
 interface KeyPocketProps {
   history: HistoryItem[];
@@ -8,6 +9,16 @@ interface KeyPocketProps {
 }
 
 const KeyPocket: React.FC<KeyPocketProps> = ({ history, onSelect, onDelete }) => {
+  const [visibleKeys, setVisibleKeys] = React.useState<Record<string, boolean>>({});
+
+  const toggleKeyVisibility = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setVisibleKeys(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   // Group history items by appName
   const groupedKeys = useMemo(() => {
     const groups: Record<string, HistoryItem[]> = {};
@@ -33,10 +44,10 @@ const KeyPocket: React.FC<KeyPocketProps> = ({ history, onSelect, onDelete }) =>
   };
 
   const getProviderColor = (p: Provider) => {
-    switch(p) {
-        case Provider.GEMINI: return "bg-blue-100 text-blue-700 border-blue-200";
-        case Provider.OPENAI: return "bg-emerald-100 text-emerald-700 border-emerald-200";
-        case Provider.CLAUDE: return "bg-purple-100 text-purple-700 border-purple-200";
+    switch (p) {
+      case Provider.GEMINI: return "bg-blue-100 text-blue-700 border-blue-200";
+      case Provider.OPENAI: return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case Provider.CLAUDE: return "bg-purple-100 text-purple-700 border-purple-200";
     }
   }
 
@@ -46,7 +57,7 @@ const KeyPocket: React.FC<KeyPocketProps> = ({ history, onSelect, onDelete }) =>
         <div className="text-6xl mb-4">👜</div>
         <h3 className="text-xl font-bold text-stone-700 mb-2">주머니가 비어있어요</h3>
         <p className="text-stone-500">
-          위의 입력창에 본인의 API 키를 입력하고<br/>
+          위의 입력창에 본인의 API 키를 입력하고<br />
           '검증하고 주머니에 넣기'를 눌러보세요.
         </p>
       </div>
@@ -80,35 +91,57 @@ const KeyPocket: React.FC<KeyPocketProps> = ({ history, onSelect, onDelete }) =>
                 <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 group hover:bg-stone-50 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-1">
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded border ${getProviderColor(item.provider)} uppercase`}>
-                            {item.provider}
-                        </span>
-                        <span className="font-medium text-stone-700">{item.alias}</span>
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded border ${getProviderColor(item.provider)} uppercase`}>
+                        {item.provider}
+                      </span>
+                      <span className="font-medium text-stone-700">{item.alias}</span>
                     </div>
                     <div className="flex items-center space-x-3 text-sm text-stone-400">
-                        <code className="bg-stone-100 px-1.5 py-0.5 rounded text-stone-600 font-mono text-xs">{item.maskedKey}</code>
-                        <span>•</span>
-                        <span className={`${item.status === 'valid' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                             {item.status === 'valid' ? '● 유효함' : '● 확인 필요'}
-                        </span>
+                      <div className="flex items-center space-x-2 bg-stone-100 px-1.5 py-0.5 rounded">
+                        <code className="text-stone-600 font-mono text-xs">
+                          {visibleKeys[item.id] ? getDecryptedKey(item.id) : item.maskedKey}
+                        </code>
+                        <button
+                          onClick={(e) => toggleKeyVisibility(item.id, e)}
+                          className="text-stone-400 hover:text-stone-600 transition-colors"
+                          title={visibleKeys[item.id] ? "숨기기" : "키 보기"}
+                        >
+                          {visibleKeys[item.id] ? (
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.048m5.838-5.838A3 3 0 1114.63 6.63M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3l18 18" />
+                            </svg>
+                          ) : (
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          )}
+                        </button>
+                      </div>
+                      <span>•</span>
+                      <span className={`${item.status === 'valid' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                        {item.status === 'valid' ? '● 유효함' : '● 확인 필요'}
+                      </span>
                     </div>
                   </div>
 
                   <div className="flex items-center space-x-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
-                        onClick={() => onSelect(item)}
-                        className="px-4 py-2 bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 text-sm font-medium rounded-lg transition-colors shadow-sm"
+                      onClick={() => onSelect(item)}
+                      className="px-4 py-2 bg-white border border-stone-200 hover:border-orange-300 hover:text-orange-600 text-stone-600 text-sm font-medium rounded-lg transition-colors shadow-sm"
                     >
-                        불러오기
+                      불러오기
                     </button>
                     <button
-                        onClick={() => onDelete(item.id)}
-                        className="p-2 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-                        title="삭제"
+                      onClick={() => onDelete(item.id)}
+                      className="p-2 text-stone-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                      title="삭제"
                     >
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                     </button>
                   </div>
                 </div>

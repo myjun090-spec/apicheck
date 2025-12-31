@@ -1,14 +1,14 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // We use a lightweight model for validation
 const VALIDATION_MODEL = 'gemini-1.5-flash';
 
 export const validateGeminiKey = async (apiKey: string): Promise<{ success: boolean; status: number; message: string; model: string; usage?: string }> => {
   try {
-    const ai = new GoogleGenAI({ apiKey });
+    const genAI = new GoogleGenerativeAI(apiKey);
 
     // We attempt to generate a very small content to validate the key
-    const model = ai.getGenerativeModel({ model: VALIDATION_MODEL });
+    const model = genAI.getGenerativeModel({ model: VALIDATION_MODEL });
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: 'ping' }] }],
       generationConfig: {
