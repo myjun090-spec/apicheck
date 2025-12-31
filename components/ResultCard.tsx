@@ -36,6 +36,15 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onSave, onReset, isSavi
     );
   };
 
+  const getReissueStatus = () => {
+    if (isSuccess) return { text: '재발급 불필요', color: 'text-emerald-600 bg-emerald-100' };
+    if (result.status === 401 || result.status === 403) return { text: '재발급 필수 (즉시)', color: 'text-rose-600 bg-rose-100' };
+    if (result.status === 429) return { text: '재발급 불필요 (대기 필요)', color: 'text-amber-600 bg-amber-100' };
+    return { text: '재발급 고려/상태 확인', color: 'text-amber-600 bg-amber-100' };
+  };
+
+  const status = getReissueStatus();
+
   return (
     <div className={`rounded-2xl border shadow-sm overflow-hidden animate-fade-in-up ${getColors()}`}>
       <div className="p-6">
@@ -45,9 +54,14 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onSave, onReset, isSavi
               {getIcon()}
             </div>
             <div>
-              <h3 className="text-lg font-bold">
-                {isSuccess ? '검증 성공' : '검증 실패'}
-              </h3>
+              <div className="flex items-center space-x-2">
+                <h3 className="text-lg font-bold">
+                  {isSuccess ? '검증 성공' : '검증 실패'}
+                </h3>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${status.color}`}>
+                  {status.text}
+                </span>
+              </div>
               <p className="text-sm opacity-80 mt-1">
                 {result.message}
               </p>
@@ -85,13 +99,11 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onSave, onReset, isSavi
         </div>
 
         <div className="mt-6 flex space-x-3">
-          {/* Auto-save happens now, but we keep the button for re-saving or UX clarity if needed, 
-                but for now let's just keep the 'Test Another' button primary */}
           <button
             onClick={onReset}
             className={`flex-1 font-bold py-3 px-4 rounded-xl shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0 ${isSuccess
-                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200'
-                : 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-200'
+              ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200'
+              : 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-200'
               }`}
           >
             다른 키 테스트

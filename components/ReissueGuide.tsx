@@ -23,6 +23,14 @@ const ReissueGuide: React.FC = () => {
           >
             OpenAI 키 발급/갱신 ↗
           </a>
+          <a
+            href="https://console.anthropic.com/settings/keys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center px-3 py-1.5 bg-purple-50 text-purple-700 text-xs font-bold rounded-lg border border-purple-100 hover:bg-purple-100 transition-colors"
+          >
+            Claude 키 발급/갱신 ↗
+          </a>
         </div>
 
         {/* Red - Must Reissue */}
