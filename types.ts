@@ -11,6 +11,7 @@ export interface ValidationResult {
   responseTime: number;
   provider: Provider;
   modelUsed?: string;
+  usage?: string; // Added: Usage information if available
   timestamp: number;
   recommendation: string;
 }

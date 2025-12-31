@@ -3,11 +3,12 @@ import { validateGeminiKey } from './geminiService';
 
 export const validateApiKey = async (provider: Provider, apiKey: string): Promise<ValidationResult> => {
   const startTime = Date.now();
-  let result = {
+  let result: { success: boolean; status: number; message: string; model: string; usage?: string } = {
     success: false,
     status: 0,
     message: '',
-    model: ''
+    model: '',
+    usage: undefined
   };
 
   try {
@@ -15,19 +16,19 @@ export const validateApiKey = async (provider: Provider, apiKey: string): Promis
       case Provider.GEMINI:
         result = await validateGeminiKey(apiKey);
         break;
-        
+
       case Provider.OPENAI:
         // Note: Direct browser calls to OpenAI often fail due to CORS. 
         // Real implementation requires a backend proxy as per PRD.
         // For this frontend-only demo, we simulate a check or try a fetch that might fail.
         result = await simulateOpenAICheck(apiKey);
         break;
-        
+
       case Provider.CLAUDE:
         // Similar CORS restriction for Anthropic.
         result = await simulateClaudeCheck(apiKey);
         break;
-        
+
       default:
         throw new Error('지원하지 않는 제공자입니다.');
     }
@@ -41,7 +42,7 @@ export const validateApiKey = async (provider: Provider, apiKey: string): Promis
   }
 
   const endTime = Date.now();
-  
+
   return {
     success: result.success,
     status: result.status,
@@ -49,6 +50,7 @@ export const validateApiKey = async (provider: Provider, apiKey: string): Promis
     responseTime: endTime - startTime,
     provider,
     modelUsed: result.model,
+    usage: result.usage,
     timestamp: endTime,
     recommendation: getRecommendation(result.status, provider)
   };
@@ -70,7 +72,7 @@ const simulateOpenAICheck = async (key: string) => {
   if (!key.startsWith('sk-')) {
     return { success: false, status: 400, message: '형식 오류: OpenAI 키는 보통 "sk-"로 시작합니다.', model: 'gpt-4o-mini' };
   }
-  
+
   try {
     // Attempt a real fetch - this WILL fail with CORS in most browsers without a proxy
     // We catch the error and return a specific message about the Backend requirement
@@ -78,7 +80,7 @@ const simulateOpenAICheck = async (key: string) => {
       method: 'GET',
       headers: { Authorization: `Bearer ${key}` }
     });
-    
+
     return {
       success: res.ok,
       status: res.status,
@@ -87,24 +89,24 @@ const simulateOpenAICheck = async (key: string) => {
     };
   } catch (e) {
     // If it's a network error (likely CORS), we inform the user
-    return { 
-      success: false, 
-      status: 0, 
-      message: 'CORS 차단됨: OpenAI는 브라우저 직접 호출을 허용하지 않습니다. (PRD 참조)', 
-      model: 'gpt-4o-mini' 
+    return {
+      success: false,
+      status: 0,
+      message: 'CORS 차단됨: OpenAI는 브라우저 직접 호출을 허용하지 않습니다. (PRD 참조)',
+      model: 'gpt-4o-mini'
     };
   }
 };
 
 const simulateClaudeCheck = async (key: string) => {
-   if (!key.startsWith('sk-ant-')) {
+  if (!key.startsWith('sk-ant-')) {
     return { success: false, status: 400, message: '형식 오류: Claude 키는 보통 "sk-ant-"로 시작합니다.', model: 'claude-3-haiku' };
   }
   // Anthropic is strict about CORS.
-  return { 
-      success: false, 
-      status: 0, 
-      message: 'CORS 차단됨: Anthropic은 백엔드 프록시가 필요합니다. 이 데모는 프론트엔드 전용입니다.', 
-      model: 'claude-3-haiku' 
+  return {
+    success: false,
+    status: 0,
+    message: 'CORS 차단됨: Anthropic은 백엔드 프록시가 필요합니다. 이 데모는 프론트엔드 전용입니다.',
+    model: 'claude-3-haiku'
   };
 };

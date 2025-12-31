@@ -12,7 +12,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onSave, onReset, isSavi
   if (!result) return null;
 
   const isSuccess = result.success;
-  
+
   // Color configuration based on status (Pastel)
   const getColors = () => {
     if (isSuccess) return 'bg-emerald-50 border-emerald-100 text-emerald-900';
@@ -70,6 +70,12 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onSave, onReset, isSavi
             <span className="block opacity-60 text-xs uppercase mb-1">검증 모델</span>
             <span className="font-medium">{result.modelUsed}</span>
           </div>
+          {result.usage && (
+            <div className="sm:col-span-2">
+              <span className="block opacity-60 text-xs uppercase mb-1">API 사용량</span>
+              <span className="font-medium">{result.usage}</span>
+            </div>
+          )}
           <div className="sm:col-span-2">
             <span className="block opacity-60 text-xs uppercase mb-1">권장 조치</span>
             <span className="font-medium flex items-center">
@@ -79,15 +85,14 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onSave, onReset, isSavi
         </div>
 
         <div className="mt-6 flex space-x-3">
-            {/* Auto-save happens now, but we keep the button for re-saving or UX clarity if needed, 
+          {/* Auto-save happens now, but we keep the button for re-saving or UX clarity if needed, 
                 but for now let's just keep the 'Test Another' button primary */}
           <button
             onClick={onReset}
-            className={`flex-1 font-bold py-3 px-4 rounded-xl shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0 ${
-              isSuccess 
-                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200' 
+            className={`flex-1 font-bold py-3 px-4 rounded-xl shadow-sm transition-all transform hover:-translate-y-0.5 active:translate-y-0 ${isSuccess
+                ? 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-200'
                 : 'bg-white hover:bg-stone-50 text-stone-700 border border-stone-200'
-            }`}
+              }`}
           >
             다른 키 테스트
           </button>
