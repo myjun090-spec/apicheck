@@ -1,7 +1,8 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // We use a lightweight model for validation
-const VALIDATION_MODEL = 'gemini-1.5-flash';
+// Update to Gemini 2.0 Flash for 2026 compatibility
+const VALIDATION_MODEL = 'gemini-2.0-flash';
 
 export const validateGeminiKey = async (apiKey: string): Promise<{ success: boolean; status: number; message: string; model: string; usage?: string }> => {
   try {
@@ -50,9 +51,9 @@ export const validateGeminiKey = async (apiKey: string): Promise<{ success: bool
     } else if (message.includes('quota exceeded') || message.includes('429')) {
       status = 429;
       message = 'API 사용량(할당량)을 모두 소진했습니다. 내일 다시 시도하거나 유료 플랜을 확인하세요.';
-    } else if (message.includes('model not found') || message.includes('not found')) {
+    } else if (message.includes('model not found') || message.includes('not found') || message.includes('404')) {
       status = 404;
-      message = `지정한 모델(${VALIDATION_MODEL})을 찾을 수 없습니다. 서비스 지역 또는 설정 확인이 필요합니다.`;
+      message = `지정한 모델(${VALIDATION_MODEL})을 찾을 수 없거나, 해당 API 키가 이 모델에 접근할 수 없습니다. 서비스 지역 또는 API 설정을 확인하세요.`;
     }
 
     return {
